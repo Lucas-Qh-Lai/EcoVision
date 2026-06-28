@@ -176,7 +176,7 @@ async def lifespan(app: FastAPI):
     print("[server] 关闭")
 
 
-app = FastAPI(title="EcoVision 环保之眼", version="2.1.0", lifespan=lifespan)
+app = FastAPI(title="EcoVision 环保之眼", version="2.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 

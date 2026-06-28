@@ -2,7 +2,7 @@
 
 > **AI-Powered Real-Time Garbage Classification System**
 >
-> Version 2.1.0 · 2025-2026 · Quanzhou No.5 Middle School Science Fair Project
+> Version 2.0 · 2025-2026 · Quanzhou No.5 Middle School Science Fair Project
 
 [中文文档](README.md)
 
