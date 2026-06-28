@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#059669">
+  <title>EcoVision - 数据统计</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    .stats-container{max-width:1100px;margin:0 auto;padding:68px 24px 40px}
+    .stats-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+    .stats-header h1{font-size:1.3rem;font-weight:700;color:var(--text)}
+    .range-selector{display:flex;gap:6px}
+    .range-btn{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);font-size:0.85rem;cursor:pointer;transition:all var(--transition)}
+    .range-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .range-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .refresh-btn{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card);color:var(--text-secondary);font-size:0.85rem;cursor:pointer;transition:all var(--transition);display:inline-flex;align-items:center;gap:6px}
+    .refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+    @media(max-width:600px){.stats-grid{grid-template-columns:1fr}}
+    .stat-card{background:var(--bg-card);border-radius:var(--radius-md);padding:20px;border:1px solid var(--border);box-shadow:var(--shadow);text-align:center;transition:all var(--transition)}
+    .stat-card:hover{border-color:var(--accent-glow);box-shadow:var(--shadow-md)}
+    .stat-card .stat-num{font-size:2rem;font-weight:700;color:var(--accent);line-height:1.2}
+    .stat-card .stat-lbl{font-size:0.85rem;color:var(--text-muted);margin-top:4px}
+    .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+    @media(max-width:800px){.chart-row{grid-template-columns:1fr}}
+    .chart-card{background:var(--bg-card);border-radius:var(--radius-md);padding:20px;border:1px solid var(--border);box-shadow:var(--shadow);transition:all var(--transition)}
+    .chart-card:hover{border-color:var(--accent-glow)}
+    .chart-card h3{font-size:0.9rem;font-weight:600;color:var(--text-secondary);margin-bottom:12px}
+    .chart-card canvas{width:100%!important;height:auto!important;max-height:280px}
+    .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+    @media(max-width:800px){.bottom-grid{grid-template-columns:1fr}}
+    .top-items-card{background:var(--bg-card);border-radius:var(--radius-md);padding:20px;border:1px solid var(--border);box-shadow:var(--shadow)}
+    .top-items-card h3{font-size:0.9rem;font-weight:600;color:var(--text-secondary);margin-bottom:12px}
+    .top-item-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+    .top-item-row:last-child{border-bottom:none}
+    .top-item-rank{width:22px;font-weight:600;color:var(--text-muted);font-size:0.85rem;text-align:center}
+    .top-item-rank.gold{color:#F59E0B}
+    .top-item-rank.silver{color:#94A3B8}
+    .top-item-rank.bronze{color:#B45309}
+    .top-item-name{flex:1;font-weight:500;font-size:0.9rem;color:var(--text)}
+    .top-item-count{font-size:0.85rem;color:var(--text-muted);white-space:nowrap}
+    .top-item-bar-wrap{width:80px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0}
+    .top-item-bar{height:100%;border-radius:3px;background:var(--accent)}
+    .loading-state{text-align:center;padding:80px 0;color:var(--text-muted)}
+    .loading-state .icon{font-size:48px;opacity:0.5;margin-bottom:12px}
+    .cat-stat-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">
+      <span class="logo-icon">🌿</span>
+      <span>EcoVision</span>
+    </a>
+    <div class="navbar-controls">
+      <button class="lang-toggle" id="langToggleStats" aria-label="Switch language"></button>
+      <a href="/" class="nav-link" style="font-size:0.85rem;" data-i18n="back">← 返回识别</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+        <span class="theme-icon icon-light">☀</span>
+        <span class="theme-icon icon-dark">☾</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="stats-container">
+    <div class="stats-header">
+      <h1 data-i18n="statsTitle">📊 识别数据统计</h1>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="refresh-btn" onclick="loadData()" data-i18n="refresh">⟳ 刷新</button>
+        <div class="range-selector">
+          <button class="range-btn" data-days="1" data-i18n="day1">今天</button>
+          <button class="range-btn active" data-days="7" data-i18n="day7">7天</button>
+          <button class="range-btn" data-days="14" data-i18n="day14">14天</button>
+          <button class="range-btn" data-days="30" data-i18n="day30">30天</button>
+          <button class="range-btn" data-days="90" data-i18n="day90">90天</button>
+        </div>
+      </div>
+    </div>
+    <div id="content">
+      <div class="loading-state">
+        <div class="icon">📊</div>
+        <p data-i18n="loadingStats">正在加载统计数据...</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ─── i18n ─── */
+  var I18N = {
+    zh: {
+      back:'← 返回识别', statsTitle:'📊 识别数据统计', refresh:'⟳ 刷新',
+      day1:'今天', day7:'7天', day14:'14天', day30:'30天', day90:'90天',
+      loadingStats:'正在加载统计数据...',
+      statTotal:'识别总数', statItems:'不同物品', statCats:'分类数',
+      chartCat:'♻️ 分类分布', chartTrend:'📈 每日趋势',
+      topItemsTitle:'🏆 识别最多的物品 Top 10',
+      catStats:'📂 分类统计',
+      noRecords:'暂无识别记录', goHome:'去首页识别一些垃圾吧',
+      connFail:'无法连接到服务器', connHint:'请确认 EcoVision 服务正在运行',
+      loadFail:'数据加载失败',
+      countUnit:'次',
+    },
+    en: {
+      back:'← Back', statsTitle:'📊 Recognition Statistics', refresh:'⟳ Refresh',
+      day1:'Today', day7:'7 Days', day14:'14 Days', day30:'30 Days', day90:'90 Days',
+      loadingStats:'Loading statistics...',
+      statTotal:'Total Items', statItems:'Unique Items', statCats:'Categories',
+      chartCat:'♻️ Category Distribution', chartTrend:'📈 Daily Trend',
+      topItemsTitle:'🏆 Top 10 Most Recognized',
+      catStats:'📂 Category Stats',
+      noRecords:'No records yet', goHome:'Identify some waste on the home page',
+      connFail:'Cannot connect to server', connHint:'Please make sure EcoVision is running',
+      loadFail:'Failed to load data',
+      countUnit:'times',
+    },
+  };
+
+  var LANG = 'zh';
+  var lang = I18N.zh;
+  function t(key) { return (lang && lang[key]) || key; }
+  function setLang(code) {
+    LANG = code;
+    lang = I18N[code] || I18N.zh;
+    try { localStorage.setItem('ecovision-lang', code); } catch(e) {}
+    document.documentElement.lang = code === 'zh' ? 'zh-CN' : 'en';
+    updateI18nUI();
+  }
+  function updateI18nUI() {
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      var key = el.getAttribute('data-i18n');
+      if (key && t(key)) el.textContent = t(key);
+    });
+    var lt = document.getElementById('langToggleStats');
+    if (lt) lt.textContent = LANG === 'zh' ? 'EN' : '中';
+    document.title = 'EcoVision - ' + (LANG === 'zh' ? '数据统计' : 'Statistics');
+  }
+
+  // Restore language
+  try { var ls = localStorage.getItem('ecovision-lang'); if (ls && I18N[ls]) setLang(ls); else setLang('zh'); } catch(e) { setLang('zh'); }
+
+  // Theme
+  var themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', function() {
+      var h = document.documentElement;
+      var n = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      h.setAttribute('data-theme', n);
+      try { localStorage.setItem('ecovision-theme', n); } catch(e) {}
+    });
+  }
+  try { var ts = localStorage.getItem('ecovision-theme'); if (ts) document.documentElement.setAttribute('data-theme', ts); } catch(e) {}
+
+  // Language toggle
+  var langToggle = document.getElementById('langToggleStats');
+  if (langToggle) {
+    langToggle.addEventListener('click', function() {
+      setLang(LANG === 'zh' ? 'en' : 'zh');
+      // Re-render if data is loaded
+      if (window._statsData) render(window._statsData);
+    });
+  }
+
+  var CAT_COLORS = { '可回收垃圾':'#3B82F6','可回收物':'#3B82F6','有害垃圾':'#EF4444','厨余垃圾':'#10B981','其他垃圾':'#6B7280','其它垃圾':'#6B7280' };
+  var CAT_ICONS = { '可回收垃圾':'♻️','可回收物':'♻️','有害垃圾':'☣️','厨余垃圾':'🍃','其他垃圾':'🗑️','其它垃圾':'🗑️' };
+  var currentDays = 7;
+  var donutChart = null, barChart = null;
+
+  document.querySelectorAll('.range-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.range-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentDays = parseInt(btn.dataset.days);
+      loadData();
+    });
+  });
+
+  window.loadData = async function() {
+    var content = document.getElementById('content');
+    var healthOk = true;
+    try { var h = await fetch('/api/health'); var hd = await h.json(); if (hd.status !== 'ok') healthOk = false; } catch(e) { healthOk = false; }
+    if (!healthOk) {
+      content.innerHTML = '<div class="loading-state"><div class="icon">⚠️</div><p>' + t('connFail') + '</p><p style="font-size:0.85rem;color:var(--text-muted);">' + t('connHint') + '</p></div>';
+      return;
+    }
+    content.innerHTML = '<div class="loading-state"><div class="icon">📊</div><p>' + t('loadingStats') + '</p></div>';
+    try {
+      var res = await fetch('/api/stats?days=' + currentDays);
+      var data = await res.json();
+      window._statsData = data;
+      render(data);
+    } catch(e) {
+      content.innerHTML = '<div class="loading-state"><div class="icon">❌</div><p>' + t('loadFail') + '</p><p style="font-size:0.85rem;color:var(--text-muted);">' + e.message + '</p></div>';
+    }
+  };
+
+  function render(data) {
+    var content = document.getElementById('content');
+    var total = data.total || 0;
+    var cats = data.categories || [];
+    var topItems = data.top_items || [];
+    var catHtml = '';
+    cats.forEach(function(c) {
+      var color = CAT_COLORS[c.category] || '#6B7280';
+      var icon = CAT_ICONS[c.category] || '🗑️';
+      var pct = total > 0 ? ((c.count / total) * 100).toFixed(1) : 0;
+      catHtml += '<div class="cat-stat-row"><span style="font-size:1.2rem;">' + icon + '</span><div style="flex:1;"><div style="display:flex;justify-content:space-between;font-size:0.85rem;"><span style="color:var(--text);font-weight:500;">' + c.category + '</span><span style="color:var(--text-muted);">' + c.count + ' ' + t('countUnit') + ' (' + pct + '%)</span></div><div style="height:6px;background:var(--border);border-radius:3px;margin-top:4px;overflow:hidden;"><div style="height:100%;background:' + color + ';border-radius:3px;width:' + pct + '%;"></div></div></div></div>';
+    });
+    var topHtml = '';
+    var maxCount = topItems.length > 0 ? topItems[0].count : 1;
+    topItems.slice(0, 10).forEach(function(item, i) {
+      var rank = i + 1;
+      var rc = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : '';
+      var pct = (item.count / maxCount) * 100;
+      var color = CAT_COLORS[item.category] || '#6B7280';
+      topHtml += '<div class="top-item-row"><div class="top-item-rank ' + rc + '">' + rank + '</div><div class="top-item-name">' + item.display_name + '</div><div class="top-item-bar-wrap"><div class="top-item-bar" style="width:' + pct + '%;background:' + color + ';"></div></div><div class="top-item-count">' + item.count + ' ' + t('countUnit') + '</div></div>';
+    });
+    if (!topHtml) {
+      topHtml = '<div style="text-align:center;padding:30px 20px;color:var(--text-muted);font-size:0.9rem;">📭 ' + t('noRecords') + '<br><span style="font-size:0.8rem;">' + t('goHome') + '</span></div>';
+    }
+    var uniqueItems = 0;
+    var uniqueMap = {};
+    (topItems || []).forEach(function(i) { if (!uniqueMap[i.label]) { uniqueMap[i.label] = true; uniqueItems++; } });
+    content.innerHTML = '<div class="stats-grid"><div class="stat-card"><div class="stat-num">' + total + '</div><div class="stat-lbl">' + t('statTotal') + '</div></div><div class="stat-card"><div class="stat-num">' + uniqueItems + '</div><div class="stat-lbl">' + t('statItems') + '</div></div><div class="stat-card"><div class="stat-num">' + cats.length + '</div><div class="stat-lbl">' + t('statCats') + '</div></div></div><div class="chart-row"><div class="chart-card"><h3>' + t('chartCat') + '</h3><canvas id="donutChart"></canvas></div><div class="chart-card"><h3>' + t('chartTrend') + '</h3><canvas id="barChart"></canvas></div></div><div class="bottom-grid"><div class="top-items-card"><h3>' + t('topItemsTitle') + '</h3>' + topHtml + '</div><div class="top-items-card"><h3>' + t('catStats') + '</h3>' + catHtml + '</div></div>';
+    requestAnimationFrame(function() { drawDonut(data); drawBar(data); });
+  }
+
+  function getThemeColors() {
+    var s = getComputedStyle(document.documentElement);
+    return { text: s.getPropertyValue('--text').trim(), muted: s.getPropertyValue('--text-muted').trim(), border: s.getPropertyValue('--border').trim(), card: s.getPropertyValue('--bg-card').trim(), accent: s.getPropertyValue('--accent').trim() };
+  }
+
+  function drawDonut(data) {
+    var canvas = document.getElementById('donutChart');
+    if (!canvas) return;
+    if (donutChart) donutChart.destroy();
+    var cats = data.categories || [];
+    var tc = getThemeColors();
+    donutChart = new Chart(canvas, {
+      type: 'doughnut',
+      data: { labels: cats.map(function(c) { return c.category; }), datasets: [{ data: cats.map(function(c) { return c.count; }), backgroundColor: cats.map(function(c) { return CAT_COLORS[c.category] || '#6B7280'; }), borderWidth: 0, hoverOffset: 8 }] },
+      options: { responsive: true, maintainAspectRatio: true, cutout: '60%', plugins: { legend: { display: true, position: 'bottom', labels: { color: tc.text, padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 12 } } }, tooltip: { backgroundColor: tc.card, titleColor: tc.text, bodyColor: tc.text, borderColor: tc.border, borderWidth: 1, padding: 10, cornerRadius: 8, callbacks: { label: function(ctx) { var t = ctx.dataset.data.reduce(function(a, b) { return a + b; }, 0); return ' ' + ctx.label + ': ' + ctx.raw + ' ' + (LANG === 'zh' ? '次' : 'times') + ' (' + (ctx.raw / t * 100).toFixed(1) + '%)'; } } } } }
+    });
+  }
+
+  function drawBar(data) {
+    var canvas = document.getElementById('barChart');
+    if (!canvas) return;
+    if (barChart) barChart.destroy();
+    var daily = data.daily || [];
+    if (!daily.length) return;
+    var tc = getThemeColors();
+    barChart = new Chart(canvas, {
+      type: 'bar',
+      data: { labels: daily.map(function(d) { return d.day ? d.day.slice(5) : ''; }), datasets: [{ data: daily.map(function(d) { return d.count; }), backgroundColor: tc.accent + '99', borderColor: tc.accent, borderWidth: 1, borderRadius: 4, hoverBackgroundColor: tc.accent }] },
+      options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { backgroundColor: tc.card, titleColor: tc.text, bodyColor: tc.text, borderColor: tc.border, borderWidth: 1, padding: 10, cornerRadius: 8 } }, scales: { x: { grid: { display: false }, ticks: { color: tc.muted, font: { size: 11 } } }, y: { beginAtZero: true, grid: { color: tc.border + '40' }, ticks: { color: tc.muted, font: { size: 11 }, stepSize: 1 } } } }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', loadData);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+# Virtual environments
+.venv/
+.venv11/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS metadata
+.DS_Store
+
+# Database — user recognition history, DO NOT COMMIT
+ecovision_stats.db
+
+# PID file
+/tmp/ecovision.pid
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Test files
+test_server.py
+
+# Archive — legacy PyQt5 code, not for upload
+Archive/
+# SQLite WAL files
+*.db-shm
+*.db-wal

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#059669">
+  <title>EcoVision - 环保之眼</title>
+  <link rel="stylesheet" href="/static/style.css?v=2.1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+</head>
+<body>
+  <div id="app" class="main-layout">
+    <nav class="navbar">
+      <a href="/" class="navbar-brand">
+        <span class="logo-icon">🌿</span>
+        <span data-i18n="brand">EcoVision</span>
+      </a>
+      <div class="navbar-center">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText" style="font-size:0.8rem;color:var(--text-muted);" data-i18n="loading">启动中</span>
+      </div>
+      <div class="navbar-controls">
+        <button class="lang-toggle" id="langToggle" aria-label="Switch language"></button>
+        <a href="/stats" class="nav-link" title="数据统计">📊</a>
+        <button class="theme-toggle" id="themeToggle" aria-label="切换主题">
+          <span class="theme-icon icon-light">☀</span>
+          <span class="theme-icon icon-dark">☾</span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="main-container">
+      <div class="camera-column">
+        <div class="camera-section" id="cameraSection">
+          <video id="video" autoplay playsinline muted></video>
+          <div class="camera-hint" id="cameraHint" data-i18n="cameraHint">将物品放入框内拍照</div>
+          <div class="video-label" id="videoLabel">
+            <span class="vl-icon">🔍</span>
+            <span class="vl-text" data-i18n="waitingLabel">等待拍照...</span>
+          </div>
+          <div class="camera-placeholder" id="cameraPlaceholder">
+            <div style="font-size:40px;opacity:0.5;">📷</div>
+            <p id="camStatusText" data-i18n="cameraStart">启动摄像头中...</p>
+          </div>
+        </div>
+        <div class="capture-controls">
+          <button class="capture-btn" id="captureBtn">
+            <span class="btn-icon">📸</span>
+            <span data-i18n="takePhoto">拍照识别</span>
+          </button>
+          <label class="upload-btn" id="uploadLabel" title="从相册选取图片">
+            <span class="btn-icon">🖼️</span>
+            <span data-i18n="upload">上传</span>
+            <input type="file" id="fileInput" accept="image/*" hidden>
+          </label>
+          <label class="upload-btn camera-capture" id="mobileCaptureLabel" title="手机拍照（直接打开摄像头）">
+            <span class="btn-icon">📷</span>
+            <span data-i18n="photo">拍照</span>
+            <input type="file" id="mobileCaptureInput" accept="image/*" capture="environment" hidden>
+          </label>
+          <label class="auto-toggle" title="每3秒自动拍照检测">
+            <input type="checkbox" id="autoToggle">
+            <span data-i18n="auto">自动</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="results-column" id="resultsColumn">
+        <div class="panel-section result-panel" id="resultCard">
+          <div class="panel-header">
+            <span class="category-badge" id="categoryBadge">⏳ 等待</span>
+            <span class="result-conf-text" id="confidenceText">-</span>
+          </div>
+          <div class="result-value" id="resultValue">点击拍照按钮开始识别</div>
+          <div class="result-confidence" id="confidenceBarWrap">
+            <div class="bar" id="confidenceBar"></div>
+          </div>
+          <div id="topPredictions"></div>
+        </div>
+
+        <div class="panel-section guide-panel" id="guideSection">
+          <div class="panel-header">
+            <span data-i18n="guideTitle">📋 处理指南</span>
+          </div>
+          <ul class="guide-tips" id="guideTips"></ul>
+        </div>
+
+        <div class="stats-row">
+          <span data-i18n="today">今日 <strong id="statToday">0</strong></span>
+          <span data-i18n="total">总计 <strong id="statTotal">0</strong></span>
+        </div>
+
+        <div class="panel-section history-panel">
+          <div class="panel-header">
+            <span data-i18n="recordTitle">📝 记录</span>
+            <span class="history-count" id="historyCount">0</span>
+          </div>
+          <div class="history-list" id="historyList">
+            <div class="history-empty" data-i18n="emptyHistory">暂无记录</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/static/app.js?v=2.2.0"></script>
+</body>
+</html>
