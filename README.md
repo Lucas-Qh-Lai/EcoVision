@@ -194,7 +194,7 @@ python build_guides.py              # （一次性）构建指南数据库
 uvicorn server:app --host 0.0.0.0 --port 8765
 ```
 
-然后在浏览器打开 **http://localhost:8765**。
+然后在浏览器打开 [前端页面](http://localhost:8765)。
 
 ### 快捷脚本
 
