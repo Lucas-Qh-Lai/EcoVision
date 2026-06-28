@@ -191,7 +191,7 @@ Export records as JSON array (max 10,000 rows).
 
 ```bash
 cd EcoVision
-python3 -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 # (Optional) pip install modelscope datasets mmcv
