@@ -186,7 +186,7 @@ CREATE INDEX idx_log_created ON recognition_log(created_at);
 
 ```bash
 cd EcoVision
-python3 -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 pip install modelscope datasets mmcv  # （可选）AI 识别依赖
